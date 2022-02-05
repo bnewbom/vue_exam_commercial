@@ -1,22 +1,19 @@
 <template>
-  <div>
-    <h3>사용자 정보 입력</h3>
-    <v-form v-model="stepOneVaild">      
+  <div class="container">
+    <h3 v-if="!submitted">사용자 정보 입력</h3>
+    <v-form v-show="stepOne" v-model="stepOneVaild">      
       <v-text-field
         v-model="usrName"
         :rules="nameRules"
         label="이름"
         required
       ></v-text-field>
-
       <v-text-field
         v-model="phone"
         :rules="phoneRules"
-        :counter="13"
         label="번호"
         required
       ></v-text-field>
-
       <v-text-field
         v-model="email"
         :rules="emailRules"
@@ -24,65 +21,75 @@
         required
       ></v-text-field>
       <v-btn
-      disabled
-      class="mr-4"
+        :disabled="!stepOneVaild"
+        style="color: #fff; background: #C62828;"
+        @click="stepOneNext"
+      >다음
+      </v-btn>
+    </v-form>
+
+    <div v-show="stepTwo">      
+      <input type="text" v-model="zipCode" style="width:50%; float:left" placeholder="우편번호"  readonly>
+      <button class="searchZipcode" @click="findZipCode">우편번호찾기</button>
+      <input type="text" v-model="roadAddr" placeholder="도로명주소" readonly>
+      <!-- <input type="text" v-model="jibunAddress" placeholder="지번주소" readonly> -->
+      <span id="guide" style="color:#999;display:none"></span>
+      <input type="text" v-model="detailAddr" style="margin-bottom: 20px" placeholder="상세주소">
+
+      <v-btn
+        style="color: #fff; background: #C62828;"
+        @click="stepTwoPrev"
       >
         이전
       </v-btn>
       <v-btn
-        :disabled="!stepOneVaild"
-        class="success"
-        @click="validate"
+      :disabled="!stepTwoValid"
+      style="color: #fff; background: #C62828;"
+      @click="stepTwoNext"
       >
         다음
       </v-btn>
-    </v-form>
+    </div>
 
-    <v-form v-model="stepTwoValid">      
-      <input type="text" id="sample4_postcode" placeholder="우편번호">
-      <input type="button" @click="sample4_execDaumPostcode" value="우편번호 찾기"><br>
-      <input type="text" id="sample4_roadAddress" placeholder="도로명주소">
-      <input type="text" id="sample4_jibunAddress" placeholder="지번주소">
-      <span id="guide" style="color:#999;display:none"></span>
-      <input type="text" id="sample4_detailAddress" placeholder="상세주소">
-      <input type="text" id="sample4_extraAddress" placeholder="참고항목">
-      <v-btn
-      disabled
-      class="mr-4"
-    >
-      이전
-    </v-btn>
-      <v-btn
-      :disabled="!stepTwoValid"
-      class="success"
-      @click="validate"
-    >
-      다음
-    </v-btn>
-    </v-form>
-
-    <v-form v-model="stepThreeValid">      
+    <v-form v-show="stepThree" v-model="stepThreeValid">      
       <v-text-field
         v-model="cardNum"
         :rules="cardRules"
         label="신용카드"
-        :counter="19"
         required
       ></v-text-field>
       <v-btn
-      disabled
-      class="mr-4"
-    >
+        style="color: #fff; background: #C62828;"
+        @click="stepThreePrev"
+      >
       이전
     </v-btn>
       <v-btn
       :disabled="!stepThreeValid"
-      class="success"
-      @click="validate"
+      style="color: #fff; background: #C62828;"
+      @click="submitData"
     >
       다음
     </v-btn>
     </v-form>
+
+    <div v-if="submitted">
+      <h3 class="submitted">회원 가입이 완료되었습니다.</h3>
+      <p>
+        <pre>
+        {
+          name: {{usrName}},
+          address: 
+            addr1: '{{roadAddr}}',
+            addr2: '{{detailAddr}}',
+            postal: '{{zipCode}}',
+          },
+          email: '{{email}}',
+          creditNumber: '{{creditNum}}',
+        }
+        </pre>
+      </p>
+    </div>
   </div>
 </template>
 
@@ -92,9 +99,13 @@ export default {
   name: 'IndexPage',
   data(){
     return{
+      stepOne:true,
+      stepTwo:false,
+      stepThree:false,
       stepOneVaild: false,
       stepTwoValid: false,
       stepThreeValid: false,
+      submitted: false,
       usrName: '',
       nameRules: [
         v => !!v || '필수 입력 필드입니다.',
@@ -111,20 +122,25 @@ export default {
         v => this.validEmail(v) || '이메일 형식이 맞지 않습니다.',
       ],
       cardNum:'',
+      creditNum:'',
       cardRules:[
         v => !!v || '필수 입력 필드입니다.',
         v => this.validCard(v) || '신용카드 형식이 맞지 않습니다.',
-      ]
+        v => this.validCardNum(v) || '카드 번호가 유효하지 않습니다.',
+      ],
+      zipCode: '',
+      roadAddr:'',
+      detailAddr:''
+    }
+  },
+  watch:{
+    zipCode: function(newCode) {
+      this.stepTwoValid = true
     }
   },
   methods:{
-    validate () {
-      console.log(this.$refs.form)
-        
-    },
-
     validName(v){
-      return /^[가-힣a-zA-Z]{2}$/.test(v)
+      return /^[가-힣a-zA-Z]{2,}$/.test(v)
     },
 
     validPhone(v){
@@ -136,17 +152,14 @@ export default {
     },
 
     validCard(v){
-      if(/^([0-9]{4})[- ]?([0-9]{4})[- ]?([0-9]{4})$/.test(v)){
-        this.validCardNum(v)
-      }else{
-        return false
-      }
+      return /^([0-9]{4})[- ]?([0-9]{4})[- ]?([0-9]{4})$/.test(v)
     },
 
     validCardNum(v){
       //카드 번호 유효성 체크
       //뒤에서부터 홀수번째 자리의 숫자를 모두 더한 값을 홀수합
-      //뒤에서부터 짝수번째 자리의 숫자에 2을 곱하되, 만일 2를 곱한 수가 두자리수 숫자일 경우 두 수를 더 한 값을, 한자 리수라면 그 숫자 그대로를 모두 더한 값이 짝수합
+      //뒤에서부터 짝수번째 자리의 숫자에 2을 곱하되, 
+      //만일 2를 곱한 수가 두자리수 숫자일 경우 두 수를 더한값, 한자 리수라면 그 숫자 그대로를 모두 더한값이 짝수합
       //홀수합과 짝수합을 더한 값이 10의 배수이면 유효
       v = v.replace(/\s|-/gi,'').split('').reverse()
 
@@ -169,15 +182,43 @@ export default {
           evenSum += Number(el)*2
         }
       })
-      return (oddSum + evenSum) % 10 == 0 ? true : false 
+      
+      console.log((oddSum + evenSum) % 10 == 0)
+      return (oddSum + evenSum) % 10 == 0
     },
 
+    stepOneNext(){
+      this.stepOne = false
+      this.stepTwo = true
+    },
 
-    sample4_execDaumPostcode() {
+    stepTwoPrev(){
+      this.stepOne = true
+      this.stepTwo = false
+    },
+
+    stepTwoNext(){
+      this.stepTwo = false
+      this.stepThree = true
+    },
+
+    stepThreePrev(){
+      this.stepTwo = true
+      this.stepThree = false
+    },
+
+    submitData(){
+      this.stepThree = false
+      this.submitted = true
+      let temp = this.cardNum.replace(/\s|-/gi,'')
+      console.log(temp)
+      this.creditNum = temp.substr(0,4)+'-'+temp.substr(4,4)+'-'+temp.substr(8,4)
+    },
+
+    findZipCode() {
+        let vue = this
         new daum.Postcode({
             oncomplete: function(data) {
-                // 팝업에서 검색결과 항목을 클릭했을때 실행할 코드를 작성하는 부분.
-
                 // 도로명 주소의 노출 규칙에 따라 주소를 표시한다.
                 // 내려오는 변수가 값이 없는 경우엔 공백('')값을 가지므로, 이를 참고하여 분기 한다.
                 var roadAddr = data.roadAddress; // 도로명 주소 변수
@@ -198,15 +239,15 @@ export default {
                 }
 
                 // 우편번호와 주소 정보를 해당 필드에 넣는다.
-                document.getElementById('sample4_postcode').value = data.zonecode;
-                document.getElementById("sample4_roadAddress").value = roadAddr;
-                document.getElementById("sample4_jibunAddress").value = data.jibunAddress;
+                vue.zipCode = data.zonecode
+                vue.roadAddr = roadAddr
+                // vue.roadAddr = data.jibunAddress
                 
                 // 참고항목 문자열이 있을 경우 해당 필드에 넣는다.
                 if(roadAddr !== ''){
-                    document.getElementById("sample4_extraAddress").value = extraRoadAddr;
+                  vue.roadAddr += extraRoadAddr;
                 } else {
-                    document.getElementById("sample4_extraAddress").value = '';
+                  vue.roadAddr = data.jibunAddress
                 }
 
                 var guideTextBox = document.getElementById("guide");
@@ -231,8 +272,32 @@ export default {
 }
 </script>
 <style scoped>
+input{
+  display: block;
+  width: 100%;
+  height: 65px;
+  border-bottom: 1px solid #aaabbb;
+
+}
+.container{
+  max-width: 50%;
+  margin: 0 auto;
+  margin-top: 100px;
+}
 .success{
   color: #fff;
   background: #C62828;
+}
+.searchZipcode{ 
+  display: inline-block;
+  height: 45px;
+  margin-left: 10px;
+  border-radius: 5px;
+  background: #eee;
+  padding: 0 20px;
+  margin: 10px 0;
+}
+.submitted{
+  margin-bottom:20px
 }
 </style>
