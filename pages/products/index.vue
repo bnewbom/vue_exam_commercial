@@ -1,7 +1,7 @@
 <template>
     <div class="container">
-        <h3>상품 목록</h3>
-        <div class="borderBottom">
+        <div class="topMenu">
+            <h3>상품 목록</h3>
             <div>
                 <span>평점순</span> 
                 <button @click="toggleAsc">
@@ -20,11 +20,11 @@
                 <input type="text" v-model="searchName" placeholder="제품명 검색" @input="searchByName">
             </div>
         </div>
-        <v-list>
+        <v-list class="productList">
             <template v-for="(item, index) in items">
-                <v-list-item
+                <v-list-item 
+                class="listItem"
                 :key="item.idProduct"
-                class="borderBottom"
                 >
                     <v-list-item-avatar style="width:120px; height:120px; margin-right:10px">
                         <v-img :src="item.imageUrl"></v-img>
@@ -33,17 +33,21 @@
                     <v-list-item-content>
                         <v-list-item-title class="brand">{{item.brand.brandTitle}}</v-list-item-title>
                         <v-list-item-title class="title">{{item.productTitle}}</v-list-item-title>
-                        <v-list-item-subtitle>{{item.ratingAvg}} (리뷰 {{item.reviewCount}})</v-list-item-subtitle>
-                        <v-list-item-subtitle>{{item.volume}}/{{item.price}}원</v-list-item-subtitle>
+                        <v-list-item-subtitle>
+                            <ratingStar class="star" :score="item.ratingAvg"></ratingStar>
+                            <span class="review">{{item.ratingAvg}} (리뷰 {{item.reviewCount}})</span>
+                        </v-list-item-subtitle>
+                        <v-list-item-subtitle><span class="price">{{item.volume}}/{{item.price}}원</span></v-list-item-subtitle>
                     </v-list-item-content>
                 </v-list-item>
             </template>
-        </v-list>
+        </v-list>    
     </div>
 </template>
 
 
 <script>
+import ratingStar from '@/components/ratingStar.vue'
 export default{
     data(){
         return{
@@ -56,6 +60,9 @@ export default{
             count: 1,
             bottom: false,
         }
+    },
+    components:{
+        ratingStar
     },
     created() {
         window.addEventListener('scroll', () => {
@@ -88,7 +95,7 @@ export default{
                 return false
             }
         },
-        
+
         bottomVisible() {
             const scrollY = window.scrollY
             const visible = document.documentElement.clientHeight
@@ -179,8 +186,52 @@ export default{
   margin: 0 auto;
   margin-top: 100px;
 }
-.borderBottom{
+.topMenu{
+    position: fixed;
+    top: 0;
+    width:930px;
+    padding-top: 100px;
+    z-index: 10;
+    background: #fff;
     border-bottom: 1px solid #eee;
+}
+.topMenu h3{
+    padding-bottom: 10px;
+}
+.topMenu div{
+    padding-bottom: 10px;
+    font-size:14px
+}
+.topMenu span{
+    font-weight:bold;
+    display: inline-block;
+    width:50px;
+    margin-right:5px
+}
+.topMenu button{
+    background:#eee;
+    font-size:12px;
+    padding: 5px;
+    border-radius: 10px;
+}
+.topMenu .active{
+    color: #fff;
+    background: #C62828;
+}
+.topMenu input{
+    padding: 5px;
+    border: 1px solid #eee;
+    border-radius: 5px;
+}
+.topMenu input::placeholder{
+    font-size:12px
+}
+.productList{
+    position:relative;
+    top:130px
+}
+.listItem{
+    border-bottom:1px solid #eee
 }
 .brand{
     color: #505050;
@@ -189,9 +240,20 @@ export default{
 .title{
     font-weight: bold;
 }
-.active{
-    color: #fff;
-    background: #C62828;
+.star{
+    float: left;
+}
+.review{
+    float: left;
+    margin-left: 5px;
+    margin-top: 2px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #000;
+}
+.price{
+    font-size: 12px;
+    color: #8b8b8b;
 }
 </style>
 
