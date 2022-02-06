@@ -4,6 +4,10 @@ import fs from 'fs'
 export default {
   // Disable server-side rendering: https://go.nuxtjs.dev/ssr-mode
   ssr: false,
+  target: 'static',
+  router: {
+    base: '/vue_exam_commercial/'
+  },
 
   // Global page headers: https://go.nuxtjs.dev/config-head
   head: {
