@@ -27,7 +27,7 @@
                 :key="item.idProduct"
                 >
                     <v-list-item-avatar style="width:120px; height:120px; margin-right:10px">
-                        <v-img :src="item.imageUrl"></v-img>
+                        <v-img :src="item.imageUrl" @error="handlerImgError(item)"></v-img>
                     </v-list-item-avatar>
 
                     <v-list-item-content>
@@ -105,7 +105,6 @@ export default{
         },
 
         addItem(){
-            console.log('addItem',this.sortedItem)
             let size = this.count * 10
             if(size <= this.sortedItem.length){
                 this.items = this.sortedItem.slice(0, size) 
@@ -176,6 +175,10 @@ export default{
                 clearTimeout(this.debounce) 
                 this.debounce = setTimeout(() => { this.setItem() }, 1000);  
             }
+        },
+
+        handlerImgError(item){
+            item.imageUrl = '/defaultImg.png'
         }
     }
 }

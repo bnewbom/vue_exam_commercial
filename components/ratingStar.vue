@@ -14,11 +14,6 @@
 
 <script>
 export default {
-    // data(){
-    //     return{
-    //         score: 2.7
-    //     }
-    // },
     props:['score'],
     computed:{
         ratingToPercent() {

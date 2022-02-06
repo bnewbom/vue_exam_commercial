@@ -32,7 +32,6 @@
       <input type="text" v-model="zipCode" style="width:50%; float:left" placeholder="우편번호"  readonly>
       <button class="searchZipcode" @click="findZipCode">우편번호찾기</button>
       <input type="text" v-model="roadAddr" placeholder="도로명주소" readonly>
-      <!-- <input type="text" v-model="jibunAddress" placeholder="지번주소" readonly> -->
       <span id="guide" style="color:#999;display:none"></span>
       <input type="text" v-model="detailAddr" style="margin-bottom: 20px" placeholder="상세주소">
 
@@ -92,16 +91,14 @@
     </div>
   </div>
 </template>
-<!-- scrollMonitor -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/scrollmonitor/1.2.0/scrollMonitor.js"></script>
 <script>
 export default {
   name: 'IndexPage',
   data(){
     return{
-      stepOne:true,
-      stepTwo:false,
-      stepThree:false,
+      stepOne: true,
+      stepTwo: false,
+      stepThree: false,
       stepOneVaild: false,
       stepTwoValid: false,
       stepThreeValid: false,
@@ -241,7 +238,6 @@ export default {
                 // 우편번호와 주소 정보를 해당 필드에 넣는다.
                 vue.zipCode = data.zonecode
                 vue.roadAddr = roadAddr
-                // vue.roadAddr = data.jibunAddress
                 
                 // 참고항목 문자열이 있을 경우 해당 필드에 넣는다.
                 if(roadAddr !== ''){
