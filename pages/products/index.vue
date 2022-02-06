@@ -42,20 +42,37 @@
     </div>
 </template>
 
+
 <script>
 export default{
     data(){
         return{
             products:'',
             items:'',
+            sortedItem:'',
             isAsc: true,
             showFilter: 'All',
-            searchName:''
+            searchName:'',
+            count: 1,
+            bottom: false,
         }
+    },
+    created() {
+        window.addEventListener('scroll', () => {
+        this.bottom = this.bottomVisible()
+        })
     },
     mounted(){
         this.getProducts()
     },
+    watch: {
+    bottom(bottom) {
+      if (bottom) {
+        this.count ++
+        this.addItem()
+      }
+    }
+  },
     methods:{
         async getProducts() {
             try{
@@ -63,72 +80,99 @@ export default{
                 const { data } = await this.$axios.get('https://cors-anywhere.herokuapp.com/https://s3.ap-northeast-2.amazonaws.com/public.glowday.com/test/app/products.json')
                 if (data.products.length > 0) {
                     this.products = data.products
-                    this.items = data.products
-                    this.sortItem()
-                    // this.items = this.products.slice(0,10)
                 }
+                this.setItem()
             }
             catch(e){
                 console.log(e)
                 return false
             }
         },
+        
+        bottomVisible() {
+            const scrollY = window.scrollY
+            const visible = document.documentElement.clientHeight
+            const pageHeight = document.documentElement.scrollHeight
+            const bottomOfPage = visible + scrollY >= pageHeight
+            return bottomOfPage || pageHeight < visible
+        },
+
+        addItem(){
+            console.log('addItem',this.sortedItem)
+            let size = this.count * 10
+            if(size <= this.sortedItem.length){
+                this.items = this.sortedItem.slice(0, size) 
+            }else{
+                this.items = this.sortedItem
+            }
+        },
+
+        setItem(){   
+            this.count = 1
+            this.sortItem()
+            this.filterItem()    
+            this.items = this.sortedItem.slice(0, 10) 
+        },
 
         toggleAsc(){
             this.isAsc = !this.isAsc
-            this.sortItem()
-            this.filterItem()
+            this.setItem()
         },
 
-        sortItem(){
+        sortItem(){ 
             if(this.isAsc){
-                this.products = this.products.sort((a, b) => {
-                    return a.ratingAvg > b.ratingAvg ? -1 : a.ratingAvg < b.ratingAvg ? 1 : 0
+                this.sortedItem = this.products.sort((a, b) => {
+                    return b.ratingAvg - a.ratingAvg
                 })
             } else {
-                this.products = this.products.sort((a, b) =>{
-                    return a.ratingAvg < b.ratingAvg ? -1 : a.ratingAvg > b.ratingAvg ? 1 : 0
+                this.sortedItem = this.products.sort((a, b) =>{
+                    return a.ratingAvg - b.ratingAvg
                 })
             }
         },
 
         setFillter(str){
             this.showFilter = str
-            this.filterItem()
-            this.sortItem()
+            this.setItem() 
         },
 
         filterItem(){
-            if(this.showFilter == 'All'){
-                this.items = this.products
-            }else if(this.showFilter == 'Positive'){
-                this.items = this.products.filter(el=>{
+            if(this.showFilter == 'Positive'){
+                this.sortedItem = this.sortedItem.filter(el=>{
                     return el.ratingAvg >= 3
                 })
-            }else{
-                this.items = this.products.filter(el=>{
+            }else if(this.showFilter == 'Negative'){
+                this.sortedItem = this.sortedItem.filter(el=>{
                     return el.ratingAvg < 3
                 })
             }
         },
+        
         searchByName(e){
             this.searchName = e.target.value
             this.searchName = this.searchName.trim()
             if(this.searchName != '' && this.searchName.length >= 2){
                clearTimeout(this.debounce) 
                this.debounce = setTimeout(() => {
-                    const temp = this.items.filter(el => el.productTitle.includes(this.searchName)) 
-                    this.items = temp
+                    const temp = this.sortedItem.filter(el => el.productTitle.includes(this.searchName)) 
+                    this.sortedItem = temp
+                    console.log(this.sortedItem)
+                    let count = 0
+                    if(this.sortedItem.length >= 10){
+                        count = 10
+                    }else{
+                        count = this.sortedItem.length
+                    }
+                    this.items = this.sortedItem.slice(0, count)
                 }, 1000)
             }else{ 
                 clearTimeout(this.debounce) 
-                this.debounce = setTimeout(() => { this.items = this.products }, 1000);  
+                this.debounce = setTimeout(() => { this.setItem() }, 1000);  
             }
         }
     }
 }
 </script>
-
 <style scoped>
 .container{
   max-width: 50%;

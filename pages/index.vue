@@ -92,8 +92,8 @@
     </div>
   </div>
 </template>
-
-<script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+<!-- scrollMonitor -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/scrollmonitor/1.2.0/scrollMonitor.js"></script>
 <script>
 export default {
   name: 'IndexPage',
