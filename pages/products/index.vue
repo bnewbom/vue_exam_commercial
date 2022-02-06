@@ -118,6 +118,7 @@ export default{
             this.sortItem()
             this.filterItem()    
             this.items = this.sortedItem.slice(0, 10) 
+            window.scrollTo(0,0)
         },
 
         toggleAsc(){
@@ -156,21 +157,25 @@ export default{
         
         searchByName(e){
             this.searchName = e.target.value
-            this.searchName = this.searchName.trim()
+            this.searchName = this.searchName.trimLeft()
+            
             if(this.searchName != '' && this.searchName.length >= 2){
-               clearTimeout(this.debounce) 
-               this.debounce = setTimeout(() => {
-                    const temp = this.sortedItem.filter(el => el.productTitle.includes(this.searchName)) 
-                    this.sortedItem = temp
-                    console.log(this.sortedItem)
-                    let count = 0
-                    if(this.sortedItem.length >= 10){
-                        count = 10
-                    }else{
-                        count = this.sortedItem.length
-                    }
-                    this.items = this.sortedItem.slice(0, count)
-                }, 1000)
+                if(this.searchName[1] != ' '){
+                    clearTimeout(this.debounce) 
+                    this.debounce = setTimeout(() => {
+                        const temp = this.sortedItem.filter(el => el.productTitle.includes(this.searchName)) 
+                        this.sortedItem = temp
+                        console.log(this.sortedItem)
+                        let count = 0
+                        if(this.sortedItem.length >= 10){
+                            count = 10
+                        }else{
+                            count = this.sortedItem.length
+                        }
+                        this.items = this.sortedItem.slice(0, count)
+                        window.scrollTo(0,0)
+                    }, 1000)
+                }
             }else{ 
                 clearTimeout(this.debounce) 
                 this.debounce = setTimeout(() => { this.setItem() }, 1000);  
